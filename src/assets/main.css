@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap');
+
+* {
+  font-family: 'Montserrat', sans-serif;
+  color: white;
+}
+
+/* Text Input Field */
+
+input[type="text"] {
+    width: 100%;
+    height: 6.7vh;
+    background: linear-gradient(-15deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%);
+    backdrop-filter: blur(166px);
+    border-radius: 14px;
+    border: solid 1px rgba(255, 255, 255, 0.6);
+    padding-left: 2vh;
+    font-size: 2.3vh;
+    line-height: 2.3vh;
+    letter-spacing: 1px;
+    margin-bottom: 1.6vh;
+    box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.25);
+    color: white;
+    background-blend-mode: normal;
+    box-sizing: border-box;
+}
+
+input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    background-blend-mode: overlay;
+}
+
+/* Password Input Field */
+
+input[type="password"] {
+    width: 100%;
+    height: 6.7vh;
+    background: linear-gradient(-15deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%);
+    backdrop-filter: blur(166px);
+    border-radius: 14px;
+    border: solid 1px rgba(255, 255, 255, 0.6);
+    padding-left: 2vh;
+    font-size: 2.3vh;
+    line-height: 2.3vh;
+    letter-spacing: 1px;
+    margin-bottom: 1.6vh;
+    box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.25);
+    color: white;
+    background-blend-mode: normal;
+    box-sizing: border-box;
+}
+
+input[type="password"]::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    background-blend-mode: overlay;
+}
+
+/* Submit Button */
+
+input[type="submit"] {
+    height: 6.7vh;
+    width: 100%;
+    background: #87bc49;
+    border-radius: 14px;
+    border: none;
+    font-size: 2.3vh;
+    box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+  
+input[type="submit"]:hover {
+    background: #587a30;
+}
+  
+input[type="submit"]:disabled {
+    background-color: gray;
+    color: darkgray;
+}
+
+/* Textarea Input Field */
+
+textarea {
+    height: 12.9vh;
+    background: linear-gradient(-15deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%);
+    backdrop-filter: blur(166px);
+    border-radius: 14px;
+    border: solid 1px rgba(255, 255, 255, 0.6);
+    padding: 1.7vh 2vh;
+    font-size: 2.3vh;
+    line-height: 2.3vh;
+    color: white;
+    background-blend-mode: normal;
+    box-sizing: border-box;
+    box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.25);
+}
+  
+textarea::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    background-blend-mode: overlay;
+}
+
+/* Primary Button */
+.primary-button {
+    height: 6.7vh;
+    width: 100%;
+    background: #87bc49;
+    border-radius: 14px;
+    border: none;
+    font-size: 2.3vh;
+    box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.primary-button:hover {
+    background: #587a30;
+}
+
+/* Secondary Button */
+.secondary-button {
+    width: 100%;
+    height: 6.7vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.3vh;
+}

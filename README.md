@@ -1,5 +1,7 @@
 # file-transfer
 
+File Transfer Service that should be presented in the context of a university lecture.
+
 ## Project setup
 ```
 npm install
