@@ -3,8 +3,9 @@
     <BG/>
     <Header/>
     <div class="login-form-wrapper">
-        <form @submit.prevent="submitForm" class="login-form">
+        <form @submit.prevent="signIn" class="login-form">
             <h1>Login</h1>
+            <p v-show="form.formError!=''">{{ form.formError }}</p>
             <input v-model="form.email" v-on:input="validateFormInput" type="text" placeholder="Email">
             <input v-model="form.password" v-on:input="validateFormInput" type="password" placeholder="Password">
             <div class="login-form-spacer"></div>
@@ -19,6 +20,7 @@
 <script>
 import BG from '../components/BG.vue';
 import Header from '../components/Header.vue';
+import { Auth } from 'aws-amplify';
 
 export default {
     name: "Login",
@@ -31,13 +33,21 @@ export default {
             form: {
                 email: '',
                 password: '',
-                valid: false
+                valid: false,
+                formError: ''
             }
         }
     },
     methods: {
-        submitForm() {
-            console.log(this.form);
+        async signIn() {
+            const { email, password } = this.form;
+            try {
+                await Auth.signIn(email, password);
+                this.$router.push('/');
+            } catch(e) {
+                const splitError = e.toString().split(':');
+                this.form.formError = splitError[1].substring(1);
+            }
         },
         validateFormInput() {
             var validEmailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
@@ -88,5 +98,9 @@ export default {
 
 .login-form-spacer {
     height: 2vh;
+}
+
+.login-form > p {
+    color: #FF2D55;
 }
 </style>

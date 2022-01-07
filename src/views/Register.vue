@@ -3,8 +3,9 @@
     <BG/>
     <Header/>
     <div class="register-form-wrapper">
-        <form @submit.prevent="submitForm" class="register-form">
+        <form @submit.prevent="signUp" class="register-form">
             <h1>Register</h1>
+            <p v-show="form.formError!= ''">{{ form.formError }}</p>
             <input v-model="form.email" v-on:input="validateFormInput" type="text" placeholder="Email"/>
             <input v-model="form.password" v-on:input="validateFormInput" type="password" placeholder="Password"/>
             <input v-model="form.repeatPassword" v-on:input="validateFormInput" type="password" placeholder="Repeat Password"/>
@@ -14,18 +15,33 @@
             <router-link to="/login" class="secondary-button">Login</router-link>
         </form>
     </div>
+    <Modal v-show="showSuccessModal" @close="closeModal">
+        <template v-slot:header>
+            Successful
+        </template>
+        <template v-slot:body>
+            Your registration was successful. Confirm your account by clicking on the link, that was send to your email address.
+        </template>
+        <template v-slot:footer>
+            Confirm
+        </template>
+    </Modal>
 </div>
 </template>
 
 <script>
-import BG from '../components/BG.vue'
-import Header from '../components/Header.vue'
+import BG from '../components/BG.vue';
+import Header from '../components/Header.vue';
+import { Auth } from 'aws-amplify';
+import Modal from '../components/Modal.vue';
+import router from '../router/index';
 
 export default {
     name: 'Register',
     components: {
         BG,
-        Header
+        Header,
+        Modal
     },
     data: function() {
         return {
@@ -33,13 +49,26 @@ export default {
                 email: '',
                 password: '',
                 repeatPassword: '',
-                valid: false
-            }
+                valid: false,
+                formError: ''
+            },
+            showSuccessModal: false
         }
     },
     methods: {
-        submitForm() {
-            console.log(this.form);
+        async signUp() {
+            try {
+                await Auth.signUp({username: this.form.email, password: this.form.password, email: this.form.email});
+                this.form.formError = '';
+                this.showModal();
+            } catch (e) {
+                if (e.toString().includes("EMAIL_NOT_ALLOWED")) {
+                    this.form.formError = 'Your email address is not allowed to signup'
+                    this.form.valid = false;
+                } else {
+                    this.form.formError = 'Something went wrong during the signup process'
+                }
+            }
         },
         validateFormInput() {
             var validEmailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
@@ -48,6 +77,11 @@ export default {
             let doPasswordsMatch = this.form.password == this.form.repeatPassword;
 
             this.form.valid = isEmailValid && isPasswordValid && doPasswordsMatch;
+        },
+        showModal() { this.showSuccessModal = true; },
+        closeModal() { 
+            this.showSuccessModal = false;
+            router.push('/login');
         }
     }
 }
@@ -91,5 +125,9 @@ export default {
 
 .register-form-spacer {
     height: 2vh;
+}
+
+.register-form > p {
+    color: #FF2D55;
 }
 </style>
