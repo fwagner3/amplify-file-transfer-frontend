@@ -40,6 +40,9 @@
 <script>
 import BG from '../components/BG.vue';
 import Header from '../components/Header.vue';
+import AWSAppSyncClient from 'aws-appsync';
+import { Auth } from 'aws-amplify';
+import gql from 'graphql-tag';
 
 export default {
   name: 'Home',
@@ -62,8 +65,40 @@ export default {
     }
   },
   methods: {
-    submitForm() {
+    async submitForm() {
       console.log(this.form);
+      const client = new AWSAppSyncClient({
+        url: process.env.VUE_APP_APPSYNC_ENDPOINT,
+        region: process.env.VUE_APP_APPSYNC_REGION,
+        auth: {
+          type: process.env.VUE_APP_APPSYNC_AUTH_TYPE,
+          jwtToken: async () => (await Auth.currentSession()).getAccessToken().getJwtToken()
+        }
+      });
+
+      const query = gql`
+        mutation PrepareFileUpload {
+          prepareFileUpload(
+            name: "${this.form.title}",
+            description: "${this.form.description}",
+            mode: "${(this.form.createmode == "sendEmail") ? "Email" : "Link"}",
+            recipient: "${this.form.recipient}",
+            sender: "${this.form.sender}"
+          ) {
+            signedURL,
+            link
+          }
+        }
+      `;
+
+      try {
+        const data = await client.mutate({mutation: query});
+        const signedURL = JSON.parse(data.data.prepareFileUpload.signedURL).uploadURL;
+        console.log(signedURL);
+        this.uploadFile(signedURL)
+      } catch(e) {
+        console.log(e);
+      }
     },
     determineDragDropCapable() {
       var div = document.createElement('div');
@@ -110,6 +145,18 @@ export default {
       this.files.push(this.$refs.hiddenUpload.files[0]);
       this.getImagePreview();
       this.validateFormInput();
+    },
+    async uploadFile(signedURL) {
+      const body = new Blob(this.form.files, { type: 'image/jpeg' });
+      try {
+        const result = await fetch(signedURL, {
+          method: 'PUT',
+          body: body
+        });
+        console.log(result);
+      } catch (e) {
+        console.log(e);
+      }
     }
   },
   mounted: function() {

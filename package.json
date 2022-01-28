@@ -14,7 +14,9 @@
   "dependencies": {
     "aws-amplify": "^4.3.11",
     "aws-amplify-vue": "^2.1.5",
+    "aws-appsync": "^4.1.4",
     "core-js": "^3.6.5",
+    "graphql-tag": "^2.12.6",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0"
   },

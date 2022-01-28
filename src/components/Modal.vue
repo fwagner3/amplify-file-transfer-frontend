@@ -13,10 +13,7 @@
                 </slot>
             </section>
             <footer class="modal-footer">
-                <slot name="footer">
-                    Default Footer
-                </slot>
-                <button type="button" class="btn" @click="close">Close Modal</button>
+                <button type="button" class="btn" @click="close">Confirm</button>
             </footer>
         </div>
     </div>
@@ -48,9 +45,9 @@ export default {
 }
 
 .modal {
-    background-color: #FFFFFF;
+    background-color: #111119;
     overflow-x: auto;
-    border-radius: 14px;
+    border-radius: 16px;
     display: flex;
     flex-direction: column;
     z-index: 11;
@@ -63,13 +60,13 @@ export default {
 
 .modal-header {
     position: relative;
-    background-color: rgb(0, 155, 210);
+    background-color: #232330;
     justify-content: space-between;
     padding: 20px 32px 20px 32px;
 }
 
 .modal-footer {
-    border-top: 1px solid #eeeeee;
+    border-top: 1px solid #232330;
     flex-direction: column;
     justify-content: flex-end;
     padding: 20px 32px 20px 32px;
@@ -78,7 +75,7 @@ export default {
 .modal-body {
     position: relative;
     padding: 20px 32px;
-    color: black;
+    color: white;
 }
 
 .btn-close {

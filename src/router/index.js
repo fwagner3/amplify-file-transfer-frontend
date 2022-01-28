@@ -1,16 +1,21 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import Login from '../views/Login.vue';
+import Upload from '../views/Upload.vue'
+import Download from '../views/Download.vue'
+import Login from '../views/Login.vue'
 import Register from '../views/Register.vue';
-import Download from '../views/Download.vue';
 import { Auth } from 'aws-amplify';
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home,
+    name: 'Upload',
+    component: Upload,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/download/:id',
+    name: 'Download',
+    component: Download
   },
   {
     path: '/login',
@@ -21,13 +26,7 @@ const routes = [
     path: '/register',
     name: 'Register',
     component: Register
-  },
-  {
-    path: '/download',
-    name: 'Download',
-    component: Download,
-    meta: { requiresAuth: true }
-  },
+  }
 ]
 
 const router = createRouter({

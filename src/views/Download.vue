@@ -1,107 +1,238 @@
 <template>
-<div class="download">
-    <BG/>
-    <Header/>
-    <div class="download-viewer-wrapper">
-        <div class="download-viewer">
-            <div class="download-viewer-preview"></div>
-            <div class="download-viewer-spacer"></div>
-            <div class="download-viewer-meta">
-                <h1>Filename.xyz</h1>
-                <p>File Sender | dd.mm.yyyyy</p>
-                <p>00,00GB</p>
-                <div class="download-viewer-meta-spacer"></div>
-                <button class="primary-button">Download</button>
-            </div>
-        </div>
+<div class="grid">
+    <img src="@/assets/mhp-logo.svg" class="logo">
+    <div class="interactionfield">
+        <div v-if="loading" class="lds-ring"><div></div><div></div><div></div><div></div></div>
+        <img v-if="!loading && !preview" src="@/assets/file-icon.svg" class="file">
+        <p v-if="!loading && !preview">No preview available</p>
+        <img v-if="!loading && preview" class="preview" ref="preview">
     </div>
+    <div class="dialog">
+        <h1>{{title}}</h1>
+        <p>{{description}}</p>
+        <button v-if="!loading" v-on:click="downloadFile()">Download</button>
+    </div>
+    <Modal v-show="showErrorModal" @close="closeModal">
+        <template v-slot:header>
+            Error
+        </template>
+        <template v-slot:body>
+            An error occurred. Make sure that the file, that you're trying to download exists
+        </template>
+    </Modal>
 </div>
 </template>
 
 <script>
-import BG from '../components/BG.vue';
-import Header from '../components/Header.vue';
+import Modal from '../components/Modal.vue';
+import AWSAppSyncClient from 'aws-appsync';
+import gql from 'graphql-tag';
+import { Auth } from 'aws-amplify';
 
 export default {
     name: 'Download',
     components: {
-        BG,
-        Header
+        Modal
+    },
+    data: function() {
+        return {
+            signedUrl: '',
+            title: '',
+            description: '',
+            loading: false,
+            preview: false,
+            showErrorModal: false
+        }
+    },
+    methods: {
+        async getMetadata() {
+            const client = new AWSAppSyncClient({
+                url: process.env.VUE_APP_APPSYNC_ENDPOINT,
+                region: process.env.VUE_APP_APPSYNC_REGION,
+                auth: {
+                    type: process.env.VUE_APP_APPSYNC_AUTH_TYPE,
+                    jwtToken: async () => (await Auth.currentSession()).getAccessToken().getJwtToken()
+                }
+            });
+
+            const query = gql`
+                query GetFileMetadata {
+                    getFileMetadata(
+                        id: "${this.$route.params.id}"
+                    ) {
+                        signedURL, 
+                        name, 
+                        description, 
+                        sender, 
+                        recipient,
+                        type
+                    }
+                }
+            `;
+
+            try {
+                const data = await client.query({query: query});
+                this.signedUrl = data.data.getFileMetadata.signedURL;
+                this.title = data.data.getFileMetadata.name;
+                this.description = data.data.getFileMetadata.description;
+
+                if(data.data.getFileMetadata.type == 'image/jpeg' || data.data.getFileMetadata.type == 'image/png') {
+                    this.showImagePreview();
+                } else {
+                    this.loading = false;
+                }
+            } catch (e) {
+                this.showModal();
+            }
+        },
+        downloadFile() {
+            if (this.signedUrl) {
+
+                fetch(this.signedUrl, {})
+                .then(res => res.blob())
+                .then(blob => {
+                    let url = window.URL.createObjectURL(blob);
+
+                    let el = document.createElement('a');
+                        el.setAttribute('href', url);
+                        el.setAttribute('download', "file.jpg");
+
+                        el.style.display = 'none';
+
+                        document.body.appendChild(el);
+
+                        el.click();
+
+                        document.body.removeChild(el);
+                });
+            }
+        },
+        showImagePreview() {
+            fetch(this.signedUrl, {})
+            .then(res => res.blob())
+            .then(blob => {
+                let reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onload = () => {
+                    this.loading = false;
+                    this.preview = true;
+                    this.$nextTick(() => {
+                        this.$refs.preview.src = reader.result;
+                    })
+                }
+            })
+        },
+        showModal() { this.showErrorModal= true; },
+        closeModal() { 
+            this.showErrorModal = false; 
+            this.$router.push('/login');
+        }
+    },
+    mounted: function() {
+        this.loading = true;
+        this.getMetadata();
     }
 }
 </script>
 
 <style scoped>
-.download {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgb(29,34,44);
-    background: linear-gradient(0deg, rgba(29,34,44,1) 0%, rgba(40,55,64,1) 100%);
+/* Portrait default */
+.dialog {
+    margin-top: 168px;
 }
 
-.download-viewer-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.file {
+    width: 64px; height: 64px;
 }
 
-.download-viewer {
-    width: 72.92vw;
-    height: 60.6vh;
-    background: linear-gradient(-15deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.4) 100%);
-    z-index: 2;
-    backdrop-filter: blur(166px);
-    border-radius: 14px;
-    border: solid 1px rgba(255, 255, 255, 0.6);
-    box-shadow: 0px 4px 24px -1px rgba(0, 0, 0, 0.25);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 3.1vh;
+.preview {
+    height: 128px;
 }
 
-.download-viewer-preview {
-    height: 100%;
-    width: 68%;
-    background-color: white;
-    border-radius: 14px;
-}
-
-.download-viewer-spacer {
-    height: 100%;
-    width: 2px;
-    background-color: white;
-    background-blend-mode: overlay;
-}
-
-.download-viewer-meta {
-    height: 100%;
-    width: 28%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-}
-
-.download-viewer-meta > h1 {
-    font-size: 4vh;
+h1 {
     margin: 0;
 }
 
-.download-viewer-meta > p {
-    font-size: 1.8vh;
-    margin-bottom: 0;
+.dialog > p {
+    margin: 0;
 }
 
-.download-viewer-meta-spacer {
-    flex: 1;
+.lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 50px;
+  height: 50px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  margin: 6px;
+  border: 6px solid #fff;
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: #fff transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Small devices (landscape phones) */
+@media screen and (min-width: 576px) and (orientation: landscape) {
+    .dialog {
+        margin-top: 0;
+    }
+
+    .preview {
+        width: 100%;
+        height: initial;
+    }
+}
+
+/* Medium devices (tablets) */
+@media screen and (min-width: 768px) {
+    .dialog {
+        padding-top: calc(1rem + 64px);
+    }
+
+    .file {
+        width: 128px; height: 128px;
+    }
+}
+
+/* Small desktop devices (laptops) */
+@media screen and (min-width: 992px) {
+    
+}
+
+/* Medium desktop devices (desktops) */
+@media screen and (min-width: 1200px) {
+
+}
+
+/* Large desktop devices (large desktops) */
+@media screen and (min-width: 1400px) {
+
+}
+
+/* Extra large desktop devices */
+@media screen and (min-width: 2000px) {
+
 }
 </style>

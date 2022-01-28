@@ -1,106 +1,136 @@
 <template>
-<div class="login">
-    <BG/>
-    <Header/>
-    <div class="login-form-wrapper">
-        <form @submit.prevent="signIn" class="login-form">
-            <h1>Login</h1>
-            <p v-show="form.formError!=''">{{ form.formError }}</p>
-            <input v-model="form.email" v-on:input="validateFormInput" type="text" placeholder="Email">
-            <input v-model="form.password" v-on:input="validateFormInput" type="password" placeholder="Password">
-            <div class="login-form-spacer"></div>
-            <input :disabled="!form.valid" type="submit" value="Login">
-            <div class="login-form-spacer"></div>
-            <router-link to="/register" class="secondary-button">Register</router-link>
-        </form>
-    </div>
+<div class="grid">
+    <img src="@/assets/mhp-logo.svg" class="logo">
+    <div class="interactionfield"></div>
+    <form @submit.prevent="signIn" class="dialog">
+        <h1>Login</h1>
+        <p v-if="form.servererror.length != 0" class="error">{{form.servererror}}</p>
+        <div class="inputlabel">
+            <label>Email</label>
+            <p v-if="!form.email.valid" class="error">{{form.email.error}}</p>
+        </div>
+        <input 
+            v-model="form.email.value" 
+            @change="validateEmail()"
+            :class="{ error: !form.email.valid }" 
+            type="text" 
+            placeholder="Enter your email">
+        <div class="inputlabel">
+            <label>Password</label>
+            <p v-if="!form.password.valid" class="error">{{form.password.error}}</p>
+        </div>
+        <input 
+            v-model="form.password.value" 
+            @change="validatePassword()"
+            :class="{ error: !form.password.valid }" 
+            type="password" 
+            placeholder="Enter your password">
+        <router-link to="/register">No account? Register</router-link>
+        <input :disabled="!validateForm()" type="submit" value="Login">
+    </form>
 </div>
 </template>
 
 <script>
-import BG from '../components/BG.vue';
-import Header from '../components/Header.vue';
 import { Auth } from 'aws-amplify';
 
 export default {
-    name: "Login",
-    components: {
-        BG,
-        Header
-    },
+    name: 'FinalLogin',
     data: function() {
         return {
             form: {
-                email: '',
-                password: '',
-                valid: false,
-                formError: ''
+                email: {
+                    value: '',
+                    valid: true,
+                    error: ''
+                },
+                password: {
+                    value: '',
+                    valid: true,
+                    error: ''
+                },
+                servererror: ''
             }
         }
     },
     methods: {
         async signIn() {
-            const { email, password } = this.form;
             try {
-                await Auth.signIn(email, password);
+                await Auth.signIn(this.form.email.value, this.form.password.value);
                 this.$router.push('/');
             } catch(e) {
-                const splitError = e.toString().split(':');
-                this.form.formError = splitError[1].substring(1);
+                const error = e.toString().split(':');
+                this.form.servererror = error[1].substring(1);
             }
         },
-        validateFormInput() {
-            var validEmailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-            let isEmailValid = this.form.email.match(validEmailRegex);
-            let isPasswordValid = this.form.password.length != 0;
-
-            this.form.valid = isEmailValid && isPasswordValid;
+        validateEmail() {
+            var emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            this.form.email.valid = emailRegex.test(this.form.email.value);
+            if (!this.form.email.valid) this.form.email.error = "Invalid Email";
+        },
+        validatePassword() {
+            this.form.password.valid = this.form.password.value.length != 0;
+            if (!this.form.password.valid) this.form.password.error = "Password required";
+        },
+        validateForm() {
+            var emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return this.form.password.value.length != 0 && emailRegex.test(this.form.email.value);
         }
     }
 }
 </script>
 
 <style scoped>
-.login {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgb(29,34,44);
-    background: linear-gradient(0deg, rgba(29,34,44,1) 0%, rgba(40,55,64,1) 100%);
+/* Portrait default */
+.dialog {
+    margin-top: 104px;
 }
 
-.login-form-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.interactionfield {
+    display: none !important;
 }
 
-.login-form {
-    width: 33.6vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    z-index: 2;
+/* Small devices (landscape phones) */
+@media screen and (min-width: 576px) and (orientation: landscape) {
+    .interactionfield {
+        background: url('~@/assets/bg.jpg');
+        background-size: cover;
+        display: block !important;
+    }
+
+    .dialog {
+        margin-top: 0;
+    }
 }
 
-.login-form > h1 {
-    text-align: left;
-    font-size: 4vh;
+/* Medium devices (tablets) */
+@media screen and (min-width: 768px) {
+    .dialog {
+        padding-top: calc(1rem + 64px);
+    }
+
+    .interactionfield {
+        display: none I !important;
+    }
 }
 
-.login-form-spacer {
-    height: 2vh;
+/* Small desktop devices (laptops) */
+@media screen and (min-width: 992px) {
+
 }
 
-.login-form > p {
-    color: #FF2D55;
+/* Medium desktop devices (desktops) */
+@media screen and (min-width: 1200px) {
+
+}
+
+/* Large desktop devices (large desktops) */
+@media screen and (min-width: 1400px) {
+
+}
+
+/* Extra large desktop devices */
+@media screen and (min-width: 2000px) {
+
 }
 </style>
