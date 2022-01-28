@@ -4,6 +4,7 @@
     <div class="interactionfield"></div>
     <form @submit.prevent="signIn" class="dialog">
         <h1>Login</h1>
+        <div class="spacer"></div>
         <p v-if="form.servererror.length != 0" class="error">{{form.servererror}}</p>
         <div class="inputlabel">
             <label>Email</label>
@@ -25,8 +26,11 @@
             :class="{ error: !form.password.valid }" 
             type="password" 
             placeholder="Enter your password">
+        <div class="spacer"></div>
         <router-link to="/register">No account? Register</router-link>
+        <div class="spacer"></div>
         <input :disabled="!validateForm()" type="submit" value="Login">
+        <div class="spacer"></div>
     </form>
 </div>
 </template>

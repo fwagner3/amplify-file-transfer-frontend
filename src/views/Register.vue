@@ -4,6 +4,7 @@
     <div class="interactionfield"></div>
     <form @submit.prevent="signUp" class="dialog">
         <h1>Register</h1>
+        <div class="spacer"></div>
         <p v-if="form.servererror.length != 0" class="error">{{form.servererror}}</p>
         <div class="inputlabel">
             <label>Email</label>
@@ -35,8 +36,11 @@
             :class="{ error: !form.repeatpassword.valid }"
             type="password"
             placeholder="Repeat your password">
-            <router-link to="/login">Login to existing account</router-link>
-            <input :disabled="!validateForm()" type="submit" value="Register">
+        <div class="spacer"></div>
+        <router-link to="/login">Login to existing account</router-link>
+        <div class="spacer"></div>
+        <input :disabled="!validateForm()" type="submit" value="Register">
+        <div class="spacer"></div>
     </form>
     <Modal v-show="showSuccessModal" @close="closeModal">
         <template v-slot:header>

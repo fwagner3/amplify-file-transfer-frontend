@@ -10,6 +10,7 @@
     <div class="dialog">
         <h1>{{title}}</h1>
         <p>{{description}}</p>
+        <div class="spacer"></div>
         <button v-if="!loading" v-on:click="downloadFile()">Download</button>
     </div>
     <Modal v-show="showErrorModal" @close="closeModal">
