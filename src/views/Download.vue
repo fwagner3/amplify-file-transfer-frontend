@@ -115,7 +115,7 @@ export default {
 
                         document.body.removeChild(el);
                 })
-                .catch((e) => {
+                .catch(() => {
                     this.showModal();
                 });
             }
@@ -138,7 +138,7 @@ export default {
                     })
                 }
             })
-            .catch((e) => {
+            .catch(() => {
                 this.showModal();
             });
         },
