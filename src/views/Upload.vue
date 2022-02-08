@@ -1,38 +1,58 @@
 <template>
 <div class="grid">
+    <!--Logo-->
     <img src="@/assets/mhp-logo.svg" class="logo">
+
+    <!-- Empty File Upload Field -->
     <div v-if="files.length == 0" class="interactionfield" ref="uploadField" v-on:click="openUploadDialog()">
+        <!-- Hidden Upload Input Field -->
         <input type="file" ref="hiddenupload" @change="dialogUpload" hidden/>
+        <!-- Plus Icon -->
         <svg class="plus" viewBox="0 0 204 204">
             <polygon points="95 0, 109 0, 109 95, 204 95, 204 109, 109 109, 109 204, 95 204, 95 109, 0 109, 0 95, 95 95" />
         </svg>
         <p>Add your file here</p>
     </div>
+
+    <!-- Filled File Upload Field -->
     <div v-if="files.length == 1" class="interactionfield">
+        <!-- Delete Button -->
         <img v-on:click="removeFiles" src="@/assets/cross.svg" class="delete">
+        <!-- Image Preview -->
         <img v-if="preview" ref="previewimage" class="preview">
+        <!-- Non-Image File Icon -->
         <img v-if="!preview" src="@/assets/file-icon.svg" class="file">
         <p>{{this.files[0].name}}</p>
     </div>
+
     <form class="dialog">
         <h1>Upload</h1>
+
+        <!-- Selector for form page -->
         <div class="pageselector">
+            <!-- Selector Links -->
             <div class="selector">
+                <!-- Information Tab -->
                 <label v-on:click="switchPage(1)" for="1" :class="{ active: this.page == 1, inactive: this.page != 1 }">
                     <input type="radio" name="page" value="1">
                     <span>Information</span>
                 </label>
+                <!-- Transfer Tab -->
                 <label v-on:click="switchPage(2)" for="2" :class="{ active: this.page == 2, inactive: this.page != 2 }">
                     <input type="radio" name="page" value="2">
                     <span>Transfer</span>
                 </label>
             </div>
+            <!-- Active Page Line Indicators -->
             <div class="indicator">
                 <div :class="{ active: (page == 1), inactive: (page != 1) }"></div>
                 <div :class="{ active: (page == 2), inactive: (page != 2)}"></div>
             </div>
         </div>
+
         <div class="spacer"></div>
+
+        <!-- Title Input Field --> 
         <div v-if="page == 1" class="inputlabel">
             <label>Title</label>
             <p v-if="!form.title.valid" class="error">{{form.title.error}}</p>
@@ -44,6 +64,8 @@
             :class="{ error: !form.title.valid }"
             type="text" 
             placeholder="Enter your file title">
+        
+        <!-- Description Textarea -->
         <div v-if="page == 1" class="inputlabel">
             <label>Description</label>
             <p v-if="!form.description.valid" class="error">{{form.description.error}}</p>
@@ -55,9 +77,15 @@
             :class="{ error: !form.description.valid }"
             placeholder="Enter a description">
         </textarea>
+
         <div class="spacer"></div>
+
+        <!-- Next Button -->
         <button :disabled="!validateFirstPage()" v-if="page == 1" v-on:click="page = 2">Next</button>
+
+        <!-- Transfer Mode Selector -->
         <div v-if="page == 2" class="selector">
+            <!-- Email Mode -->
             <label 
                 v-on:click="form.transfermode = 'email'" 
                 for="email" 
@@ -68,6 +96,7 @@
                 <input v-model="form.transfermode" type="radio" name="transfermode" value="email">
                 <span>Email</span>
             </label>
+            <!-- Link Mode -->
             <label 
                 v-on:click="form.transfermode = 'link'" 
                 for="link" 
@@ -79,7 +108,10 @@
                 <span>Link</span>
             </label>
         </div>
+
         <div class="spacer"></div>
+
+        <!-- Recipient Input Field -->
         <div v-if="page == 2 && form.transfermode == 'email'" class="inputlabel">
             <label>Recipient</label>
             <p v-if="!form.recipient.valid" class="error">{{form.recipient.error}}</p>
@@ -91,6 +123,8 @@
             :class="{ error: !form.recipient.valid }" 
             type="text" 
             placeholder="Enter the recpient's email">
+
+        <!-- Sender Input Field -->
         <div v-if="page == 2 && form.transfermode == 'email'" class="inputlabel">
             <label>Sender</label>
             <p v-if="!form.sender.valid" class="error">{{form.sender.error}}</p>
@@ -102,31 +136,32 @@
             :class="{ error: !form.sender.valid }"
             type="text" 
             placeholder="Enter your email">
+
         <div class="spacer"></div>
-        <button :disabled="!validateTransfer()" v-on:click="submitForm()" v-if="page == 2">
-            <span v-if=!transferInProgress>Transfer</span>
-            <div v-if="transferInProgress">
-                <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
-            </div>
-        </button>
+
+        <!-- Transfer Button -->
+        <Button v-if="page == 2" :disabled="!validateTransfer()" :loading="transferInProgress" @click="submitForm()" :text="'Transfer'"></Button>
+
         <div class="spacer"></div>
     </form>
+
+    <!-- Logout Button -->
     <button class="logout">Logout</button>
-    <Modal v-show="errorModal" @close="closeErrorModal">
-        <template v-slot:header>
-            Error
-        </template>
-        <template v-slot:body>
-            An error occurred during the transfer. Try again later.
-        </template>
+
+    <!-- Error Modal -->
+    <Modal
+        v-show="errorModal"
+        @close="closeErrorModal"
+        :headline="'Error'"
+        :body="'An error occurred during the transfer. Try again later.'">
     </Modal>
-    <Modal v-show="successModal" @close="closeSuccessModal">
-        <template v-slot:header>
-            Success
-        </template>
-        <template v-slot:body>
-            The upload was successful
-        </template>
+
+    <!-- Success Modal -->
+    <Modal
+        v-show="successModal"
+        @close="closeSuccessModal"
+        :headline="'Success'"
+        :body="(this.form.transfermode == 'link') ? 'The upload was successful. Share the link ' + this.generatedLink : 'The upload was successful'">
     </Modal>
 </div>
 </template>
@@ -136,11 +171,14 @@ import Modal from '../components/Modal.vue'
 import AWSAppSyncClient from 'aws-appsync';
 import gql from 'graphql-tag';
 import { Auth } from 'aws-amplify';
+import Button from '../components/Button.vue';
+import Constants from '../constants';
 
 export default {
     name: 'Upload',
     components: {
         Modal,
+        Button
     },
     data: function() {
         return {
@@ -173,12 +211,15 @@ export default {
             errorModal: false,
             successModal: false,
             transferInProgress: false,
-            preview: false
+            preview: false,
+            generatedLink: ''
         }
     },
     mounted: function() {
+        // Determine whether the browser is capable of dragging and dropping files
         this.dragDropCapable = this.determineDragDropCapable();
     
+        // Prevent the default behavior of the browser when a file is dragged and dropped (default is opening the file in a new tab)
         ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach( function( event ) {
             this.$refs.uploadField.addEventListener(event, function(e) {
                 e.preventDefault();
@@ -186,6 +227,7 @@ export default {
             }.bind(this), false); 
         }.bind(this));
 
+        // Add the dropped file to the files array
         this.$refs.uploadField.addEventListener('drop', function(e) {
             if (this.files.length == 0) {
                 this.files.push(e.dataTransfer.files[0]);
@@ -197,10 +239,12 @@ export default {
     },
     methods: {
         determineDragDropCapable() {
+            // Check the test element for the drag and drop attributes
             var div = document.createElement('div');
             return ( ('draggable' in div) || ('ondragstart' in div && 'ondrop' in div) ) && 'FormData' in window && 'FileReader' in window;
         },
         getImagePreview() {
+            // Read the file that should be transferred in if it is an image and make it visible
             if (this.files.length == 1) {
                 if (/.(jpe?g|png|gif)$/i.test(this.files[0].name)) {
                     this.preview = true;
@@ -217,6 +261,7 @@ export default {
             }
         },
         openUploadDialog() {
+            // Click on the hidden file input
             if (this.files.length == 0) {
                 this.$refs.hiddenupload.click();
             }
@@ -226,8 +271,10 @@ export default {
             this.getImagePreview();
         },
         removeFiles() {
+            // Clear file array
             this.files = [];
 
+            // Set up the event handlers for the upload field again after the field is empty again
             this.$nextTick(() => {
                 ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach( function( event ) {
                     this.$refs.uploadField.addEventListener(event, function(e) {
@@ -247,41 +294,47 @@ export default {
             });
         },
         validateTitle() {
+            // Title can't be empty
             this.form.title.valid = this.form.title.value.length != 0;
             if (!this.form.title.valid) this.form.title.error = "Title required";
         },
         validateDescription() {
+            // Description can't be empty
             this.form.description.valid = this.form.description.value.length != 0;
             if (!this.form.description.valid) this.form.description.error = "Description required";
         },
         validateFirstPage() {
+            // Check that no input field on the information page is empty
             return this.form.title.value.length != 0 && this.form.description.value.length != 0; 
         },
         validateRecipient() {
-            var emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            this.form.recipient.valid = emailRegex.test(this.form.recipient.value);
+            // Validate the recipient's email address
+            this.form.recipient.valid = Constants.emailRegex.test(this.form.recipient.value);
             if (!this.form.recipient.valid) this.form.recipient.error = "Invalid Email";
         },
         validateSender() {
-            var emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            this.form.sender.valid = emailRegex.test(this.form.sender.value);
+            // Validate the sender's email address
+            this.form.sender.valid = Constants.emailRegex.test(this.form.sender.value);
             if (!this.form.sender.valid) this.form.sender.error = "Invalid Email"
         },
         validateTransfer() {
             var firstPageValid = this.validateFirstPage();
+            // Check that there is exactly one file in the files array
             var fileValid = this.files.length == 1;
+            // Check the email addresses if the email transfer mode was selected
             if (this.form.transfermode == 'email') {
-                var emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                var recipientValid = emailRegex.test(this.form.recipient.value);
-                var senderValid = emailRegex.test(this.form.sender.value);
+                var recipientValid = Constants.emailRegex.test(this.form.recipient.value);
+                var senderValid = Constants.emailRegex.test(this.form.sender.value);
                 return firstPageValid && fileValid && recipientValid && senderValid;
             } else {
                 return firstPageValid && fileValid;
             }
         },
         async submitForm() {
+            // Set the transfer button to the loading state
             this.transferInProgress = true;
 
+            // Create an AWS AppSync Client that handles the connection to the GraphQL endpoint
             const client = new AWSAppSyncClient({
                 url: process.env.VUE_APP_APPSYNC_ENDPOINT,
                 region: process.env.VUE_APP_APPSYNC_REGION,
@@ -291,6 +344,7 @@ export default {
                 }
             });
 
+            // Define the mutation query that prepares the file upload
             const query = gql`
                 mutation PrepareFileUpload {
                     prepareFileUpload(
@@ -309,22 +363,37 @@ export default {
             `;
 
             try {
+                // Send the request
                 const data = await client.mutate({mutation: query});
+
+                // Extract the upload URL from the signedURL object, that the server returned
                 const signedURL = JSON.parse(data.data.prepareFileUpload.signedURL).uploadURL;
+
+                // Extract the generated share link when the link transfer mode was selected
+                if (this.form.transfermode == 'link') {
+                    this.generatedLink = data.data.prepareFileUpload.link;
+                }
+
+                // Trigger the file upload process
                 this.uploadFile(signedURL);
             } catch (e) {
                 this.transferInProgress = false;
+
+                // Show the error modal
                 this.showModal();
             }
         },
         async uploadFile(signedURL) {
-            const body = new Blob(this.files, { type: 'image/jpeg' });
+            // Create a blob with the file to upload
+            const body = new Blob(this.files, { type: this.files[0].type });
             try {
+                // Upload the file
                 await fetch(signedURL, {
                     method: 'PUT',
                     body: body
                 });
                 this.showSuccessModal();
+                this.clearForm();
                 this.transferInProgress = false;
             } catch (e) {
                 this.transferInProgress = false;
@@ -345,6 +414,14 @@ export default {
             } else {
                 this.page = 1;
             }
+        },
+        clearForm() {
+            this.form.name.value = '';
+            this.form.description.value = '';
+            this.form.recipient.value = '';
+            this.form.sender.value = '';
+            this.form.transfermode = 'email';
+            this.form.servererror = '';
         }
     }
 }
@@ -427,42 +504,6 @@ export default {
 
 .file {
     width: 64px; height: 64px;
-}
-
-.lds-ring {
-  display: inline-block;
-  position: relative;
-  width: 1rem;
-  height: 1rem;
-}
-.lds-ring div {
-  box-sizing: border-box;
-  display: block;
-  position: absolute;
-  width: calc(1rem - 4px);
-  height: calc(1rem - 4px);
-  margin: 2px;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  border-color: #fff transparent transparent transparent;
-}
-.lds-ring div:nth-child(1) {
-  animation-delay: -0.45s;
-}
-.lds-ring div:nth-child(2) {
-  animation-delay: -0.3s;
-}
-.lds-ring div:nth-child(3) {
-  animation-delay: -0.15s;
-}
-@keyframes lds-ring {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 /* Small devices (landscape phones) */

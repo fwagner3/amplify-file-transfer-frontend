@@ -1,25 +1,30 @@
 <template>
 <div class="grid">
+    <!-- Logo -->
     <img src="@/assets/mhp-logo.svg" class="logo">
+
+    <!-- Preview field for the file -->
     <div class="interactionfield">
-        <div v-if="loading" class="lds-ring"><div></div><div></div><div></div><div></div></div>
+        <div v-if="loading" class="loading"><div></div><div></div><div></div><div></div></div>
         <img v-if="!loading && !preview" src="@/assets/file-icon.svg" class="file">
         <p v-if="!loading && !preview">No preview available</p>
         <img v-if="!loading && preview" class="preview" ref="preview">
     </div>
+
+    <!-- Dialog with information about the file and the download button -->
     <div class="dialog">
         <h1>{{title}}</h1>
         <p>{{description}}</p>
         <div class="spacer"></div>
         <button v-if="!loading" v-on:click="downloadFile()">Download</button>
     </div>
-    <Modal v-show="showErrorModal" @close="closeModal">
-        <template v-slot:header>
-            Error
-        </template>
-        <template v-slot:body>
-            An error occurred. Make sure that the file, that you're trying to download exists
-        </template>
+
+    <!-- Error Modal -->
+    <Modal 
+        v-show="showErrorModal"
+        @close="closeModal"
+        :headline="'Error'"
+        :body="'An error occurred. Make sure that the file, that youre trying to download exists'">
     </Modal>
 </div>
 </template>
@@ -47,6 +52,7 @@ export default {
     },
     methods: {
         async getMetadata() {
+            // Initialize the AppSync client to make calls to the API
             const client = new AWSAppSyncClient({
                 url: process.env.VUE_APP_APPSYNC_ENDPOINT,
                 region: process.env.VUE_APP_APPSYNC_REGION,
@@ -56,6 +62,7 @@ export default {
                 }
             });
 
+            // Query to retrieve the metadata of the file
             const query = gql`
                 query GetFileMetadata {
                     getFileMetadata(
@@ -64,36 +71,38 @@ export default {
                         signedURL, 
                         name, 
                         description, 
-                        sender, 
-                        recipient,
                         type
                     }
                 }
             `;
 
             try {
+                // Extract the data from the response
                 const data = await client.query({query: query});
                 this.signedUrl = data.data.getFileMetadata.signedURL;
                 this.title = data.data.getFileMetadata.name;
                 this.description = data.data.getFileMetadata.description;
 
+                // Show a preview of the file if it is an image file
                 if(data.data.getFileMetadata.type == 'image/jpeg' || data.data.getFileMetadata.type == 'image/png') {
                     this.showImagePreview();
                 } else {
                     this.loading = false;
                 }
             } catch (e) {
+                // Show the error modal if an error occurred
                 this.showModal();
             }
         },
         downloadFile() {
             if (this.signedUrl) {
-
+                // Fetch the file that should be downloaded from the signed S3 url
                 fetch(this.signedUrl, {})
                 .then(res => res.blob())
                 .then(blob => {
                     let url = window.URL.createObjectURL(blob);
 
+                    // Create an invisible download button and click it programmatically to start the download of the file
                     let el = document.createElement('a');
                         el.setAttribute('href', url);
                         el.setAttribute('download', "file.jpg");
@@ -105,26 +114,37 @@ export default {
                         el.click();
 
                         document.body.removeChild(el);
+                })
+                .catch((e) => {
+                    this.showModal();
                 });
             }
         },
         showImagePreview() {
+            // Fetch the image file from the signed S3 url
             fetch(this.signedUrl, {})
             .then(res => res.blob())
             .then(blob => {
+                // Read the file data into a blob
                 let reader = new FileReader();
                 reader.readAsDataURL(blob);
                 reader.onload = () => {
                     this.loading = false;
                     this.preview = true;
+
+                    // Wait for the next rerender of the page, otherwise the image preview element is not present and the ref is invalid
                     this.$nextTick(() => {
                         this.$refs.preview.src = reader.result;
                     })
                 }
             })
+            .catch((e) => {
+                this.showModal();
+            });
         },
         showModal() { this.showErrorModal= true; },
         closeModal() { 
+            // Route the user to the login page, when the error modal is closed
             this.showErrorModal = false; 
             this.$router.push('/login');
         }
@@ -158,42 +178,6 @@ h1 {
     margin: 0;
 }
 
-.lds-ring {
-  display: inline-block;
-  position: relative;
-  width: 50px;
-  height: 50px;
-}
-.lds-ring div {
-  box-sizing: border-box;
-  display: block;
-  position: absolute;
-  width: 38px;
-  height: 38px;
-  margin: 6px;
-  border: 6px solid #fff;
-  border-radius: 50%;
-  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  border-color: #fff transparent transparent transparent;
-}
-.lds-ring div:nth-child(1) {
-  animation-delay: -0.45s;
-}
-.lds-ring div:nth-child(2) {
-  animation-delay: -0.3s;
-}
-.lds-ring div:nth-child(3) {
-  animation-delay: -0.15s;
-}
-@keyframes lds-ring {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 /* Small devices (landscape phones) */
 @media screen and (min-width: 576px) and (orientation: landscape) {
     .dialog {
@@ -215,25 +199,5 @@ h1 {
     .file {
         width: 128px; height: 128px;
     }
-}
-
-/* Small desktop devices (laptops) */
-@media screen and (min-width: 992px) {
-    
-}
-
-/* Medium desktop devices (desktops) */
-@media screen and (min-width: 1200px) {
-
-}
-
-/* Large desktop devices (large desktops) */
-@media screen and (min-width: 1400px) {
-
-}
-
-/* Extra large desktop devices */
-@media screen and (min-width: 2000px) {
-
 }
 </style>

@@ -9,6 +9,9 @@ html {
     background: #111119;
 }
 
+
+/* Button */
+
 button {
     color: white;
     background-color: #009BD2;
@@ -33,6 +36,13 @@ button:disabled {
 button:disabled:hover {
     background-color: #838383;
 }
+
+button:disabled > span {
+    color: #3a3a3a;
+}
+
+
+/* Submit Button */
 
 input[type="submit"] {
     color: white;
@@ -59,16 +69,25 @@ input[type="submit"]:disabled:hover {
     background-color: #838383;
 }
 
+
+/* Headlines */
+
 h1 {
     color: white;
     font-size: 2rem;
     margin: 0 0 8px 0;
 }
 
+
+/* Label */
+
 label {
     font-size: 1rem;
     margin-bottom: 4px;
 }
+
+
+/* Text and password fields and textareas */
 
 input[type="text"], input[type="password"], textarea {
     padding: 12px;
@@ -89,6 +108,9 @@ input[type="text"]::placeholder, input[type="password"]::placeholder, textarea::
     color: #969696;
 }
 
+
+/* Link */
+
 a {
     color: #009BD2;
     margin-bottom: 8px;
@@ -100,6 +122,9 @@ a:hover {
     text-decoration: underline;
 }
 
+
+/* Label above input fields */
+
 .inputlabel {
     width: 100%;
     display: flex;
@@ -107,15 +132,24 @@ a:hover {
     justify-content: space-between;
 }
 
+
+/* Error state for input fields */
+
 p.error {
     margin: 0;
     color: #FF3B30;
 }
 
+
+/* Hide the radio input buttons for the select field design */
+
 input[type="radio"] {
     width: 0;
     margin: 0;
 }
+
+
+/* Selector input field built from radio buttons */
 
 .selector {
     width: 100%;
@@ -149,6 +183,53 @@ input[type="radio"] {
 
 .selector > label.inactive > span { color: white; }
 
+
+/* Spacer for forms */
+
 .spacer {
     height: 16px;
+}
+
+
+/* Loading Spinner */
+
+.loading {
+    display: inline-block;
+    position: relative;
+    width: 1rem;
+    height: 1rem;
+}
+
+.loading div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: calc(1rem - 4px);
+    height: calc(1rem - 4px);
+    margin: 2px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    animation: loading 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: #fff transparent transparent transparent;
+}
+
+.loading div:nth-child(1) {
+    animation-delay: -0.45s;
+}
+
+.loading div:nth-child(2) {
+    animation-delay: -0.3s;
+}
+
+.loading div:nth-child(3) {
+    animation-delay: -0.15s;
+}
+
+@keyframes loading {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
