@@ -10,22 +10,34 @@ const routes = [
     path: '/',
     name: 'Upload',
     component: Upload,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true,
+      title: 'MHP File Transfer'
+    }
   },
   {
     path: '/download/:id',
     name: 'Download',
-    component: Download
+    component: Download,
+    meta: {
+      title: 'MHP File Transfer'
+    }
   },
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: Login,
+    meta: {
+      title: 'Login - MHP File Transfer'
+    }
   },
   {
     path: '/register',
     name: 'Register',
-    component: Register
+    component: Register,
+    meta: {
+      title: 'Register - MHP File Transfer'
+    }
   }
 ]
 
@@ -35,6 +47,9 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
+  if (to.meta && to.meta.title) {
+    document.title = to.meta.title;
+  }
   if (to.matched.some(record => record.meta.requiresAuth)) {
     try {
       await Auth.currentSession();
