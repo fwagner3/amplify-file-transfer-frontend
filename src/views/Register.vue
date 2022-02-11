@@ -113,7 +113,7 @@ export default {
             this.loading = true;
             try {
                 // Try to sign the user up with the given credentials in the AWS Cognito User Pool
-                await Auth.signUp({username: this.form.email, password: this.form.password, email: this.form.email});
+                await Auth.signUp({username: this.form.email.value, password: this.form.password.value, email: this.form.email.value});
                 
                 this.form.servererror = '';
                 this.clearForm();
