@@ -7,6 +7,8 @@ import '@/assets/grid.css';
 import Amplify/*, * as AmplifyModules*/ from "aws-amplify";
 import awsmobile from "@/aws-exports";
 
+Amplify.Logger.LOG_LEVEL = 'DEBUG';
+console.log(awsmobile.Auth);
 Amplify.configure(awsmobile);
 
 createApp(App).use(router/*,AmplifyPlugin,AmplifyModules*/).mount('#app')
