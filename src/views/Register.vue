@@ -112,6 +112,8 @@ export default {
         async signUp() {
             this.loading = true;
             try {
+                console.log(this.form.email.value);
+                console.log(this.form.password.value);
                 // Try to sign the user up with the given credentials in the AWS Cognito User Pool
                 await Auth.signUp({username: this.form.email.value, password: this.form.password.value, email: this.form.email.value});
                 
@@ -128,6 +130,7 @@ export default {
                 if (e.toString().includes("EMAIL_NOT_ALLOWED")) {
                     this.form.servererror = "Email address not allowed for signing up";
                 } else {
+                    console.log(e.toString());
                     this.form.servererror = 'Error during signup process';
                 }
             }

@@ -25,7 +25,7 @@
         <p>{{this.files[0].name}}</p>
     </div>
 
-    <form class="dialog">
+    <form @submit.prevent="submitForm()" class="dialog">
         <h1>Upload</h1>
 
         <!-- Selector for form page -->
@@ -341,7 +341,8 @@ export default {
                 auth: {
                     type: process.env.VUE_APP_APPSYNC_AUTH_TYPE,
                     jwtToken: async () => (await Auth.currentSession()).getAccessToken().getJwtToken()
-                }
+                },
+                disableOffline: true
             });
 
             // Define the mutation query that prepares the file upload
@@ -380,7 +381,7 @@ export default {
                 this.transferInProgress = false;
 
                 // Show the error modal
-                this.showModal();
+                this.showErrorModal();
             }
         },
         async uploadFile(signedURL) {
