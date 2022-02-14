@@ -25,7 +25,7 @@
         <p>{{this.files[0].name}}</p>
     </div>
 
-    <form @submit.prevent="submitForm()" class="dialog">
+    <form @submit.prevent="() => {}" class="dialog">
         <h1>Upload</h1>
 
         <!-- Selector for form page -->

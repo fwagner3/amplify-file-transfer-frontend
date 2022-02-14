@@ -5,7 +5,7 @@
 
     <div class="interactionfield"></div>
 
-    <form @submit.prevent="signIn" class="dialog">
+    <form @submit.prevent="() => {}" class="dialog">
         <h1>Login</h1>
 
         <div class="spacer"></div>

@@ -5,7 +5,7 @@
 
     <div class="interactionfield"></div>
 
-    <form @submit.prevent="signUp" class="dialog">
+    <form @submit.prevent="() => {}" class="dialog">
         <h1>Register</h1>
 
         <div class="spacer"></div>
@@ -112,8 +112,6 @@ export default {
         async signUp() {
             this.loading = true;
             try {
-                console.log(this.form.email.value);
-                console.log(this.form.password.value);
                 // Try to sign the user up with the given credentials in the AWS Cognito User Pool
                 await Auth.signUp({username: this.form.email.value, password: this.form.password.value, email: this.form.email.value});
                 

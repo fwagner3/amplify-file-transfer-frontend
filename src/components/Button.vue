@@ -1,5 +1,5 @@
 <template>
-    <button :disabled="disabled" v-on:click="$emit('click')">
+    <button :disabled="disabled">
         <span v-if="!loading">{{text}}</span>
         <div v-if="loading">
             <div class="loading"><div></div><div></div><div></div><div></div></div>
