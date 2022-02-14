@@ -9,6 +9,7 @@ import awsmobile from "@/aws-exports";
 
 Amplify.Logger.LOG_LEVEL = 'DEBUG';
 console.log(awsmobile.Auth);
+console.log(process.env);
 Amplify.configure(awsmobile);
 
 createApp(App).use(router/*,AmplifyPlugin,AmplifyModules*/).mount('#app')
