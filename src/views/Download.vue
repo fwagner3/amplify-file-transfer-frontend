@@ -44,6 +44,7 @@ export default {
         return {
             signedUrl: '',
             title: '',
+            name: '',
             description: '',
             loading: false,
             preview: false,
@@ -70,6 +71,7 @@ export default {
                     ) {
                         signedURL, 
                         name, 
+                        title,
                         description, 
                         type
                     }
@@ -80,7 +82,8 @@ export default {
                 // Extract the data from the response
                 const data = await client.query({query: query});
                 this.signedUrl = data.data.getFileMetadata.signedURL;
-                this.title = data.data.getFileMetadata.name;
+                this.title = data.data.getFileMetadata.title;
+                this.name = data.data.getFileMetadata.name
                 this.description = data.data.getFileMetadata.description;
 
                 // Show a preview of the file if it is an image file
@@ -105,7 +108,7 @@ export default {
                     // Create an invisible download button and click it programmatically to start the download of the file
                     let el = document.createElement('a');
                         el.setAttribute('href', url);
-                        el.setAttribute('download', "file.jpg");
+                        el.setAttribute('download', this.name);
 
                         el.style.display = 'none';
 

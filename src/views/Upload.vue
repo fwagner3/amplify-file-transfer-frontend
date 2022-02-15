@@ -161,7 +161,7 @@
         v-show="successModal"
         @close="closeSuccessModal"
         :headline="'Success'"
-        :body="(this.form.transfermode == 'link') ? 'The upload was successful. Share the link ' + this.generatedLink : 'The upload was successful'">
+        :body="(this.generatedLink != '') ? 'The upload was successful. Share the link ' + this.generatedLink : 'The upload was successful'">
     </Modal>
 </div>
 </template>
@@ -349,13 +349,15 @@ export default {
             const query = gql`
                 mutation PrepareFileUpload {
                     prepareFileUpload(
-                        type: "${this.files[0].type}",
-                        name: "${this.files[0].name}",
-                        title: "${this.form.title.value}",
-                        description: "${this.form.description.value}",
-                        mode: "${(this.form.transfermode == "email") ? "Email" : "Link"}",
-                        recipient: "${this.form.recipient.value}",
-                        sender: "${this.form.sender.value}"
+                        input: {
+                            type: "${this.files[0].type}",
+                            name: "${this.files[0].name}",
+                            title: "${this.form.title.value}",
+                            description: "${this.form.description.value}",
+                            mode: "${this.form.transfermode}",
+                            recipient: "${this.form.recipient.value}",
+                            sender: "${this.form.sender.value}"
+                        }
                     ) {
                         signedURL,
                         link
@@ -373,6 +375,7 @@ export default {
                 // Extract the generated share link when the link transfer mode was selected
                 if (this.form.transfermode == 'link') {
                     this.generatedLink = data.data.prepareFileUpload.link;
+                    console.log(data.data.prepareFileUpload.link);
                 }
 
                 // Trigger the file upload process
@@ -398,7 +401,7 @@ export default {
                 this.transferInProgress = false;
             } catch (e) {
                 this.transferInProgress = false;
-                this.showModal();
+                this.showErrorModal();
             }
         },
         showErrorModal() { this.errorModal = true; },
@@ -417,12 +420,14 @@ export default {
             }
         },
         clearForm() {
-            this.form.name.value = '';
+            this.form.title.value = '';
             this.form.description.value = '';
             this.form.recipient.value = '';
             this.form.sender.value = '';
             this.form.transfermode = 'email';
             this.form.servererror = '';
+            this.files = [];
+            this.page = 1;
         }
     }
 }
